@@ -1,0 +1,143 @@
+[project]
+name = "llm-from-scratch"
+version = "0.1.0"
+description = "LLM from Scratch — Hands-On Curriculum (PyTorch)"
+requires-python = ">=3.11"
+
+dependencies = [
+    "torch==2.8.0",
+    "numpy==2.3.2",
+    "matplotlib==3.10.5",
+    "pandas==2.3.2",
+    "datasets==4.0.0",
+    "tokenizers==0.21.4",
+    "huggingface-hub==0.34.4",
+    "tqdm==4.67.1",
+    "tensorboard==2.20.0",
+    "PyYAML==6.0.2",
+    "requests==2.32.4",
+    "Pygments==2.19.2",
+    # All other dependencies from requirements.txt
+    "absl-py==2.3.1",
+    "aiohappyeyeballs==2.6.1",
+    "aiohttp==3.12.15",
+    "aiosignal==1.4.0",
+    "attrs==25.3.0",
+    "certifi==2025.8.3",
+    "charset-normalizer==3.4.3",
+    "contourpy==1.3.3",
+    "cycler==0.12.1",
+    "dill==0.3.8",
+    "filelock==3.19.1",
+    "fonttools==4.59.1",
+    "frozenlist==1.7.0",
+    "fsspec==2025.3.0",
+    "grpcio==1.74.0",
+    "hf-xet==1.1.7",
+    "idna==3.10",
+    "iniconfig==2.1.0",
+    "Jinja2==3.1.6",
+    "kiwisolver==1.4.9",
+    "Markdown==3.8.2",
+    "MarkupSafe==3.0.2",
+    "mpmath==1.3.0",
+    "multidict==6.6.4",
+    "multiprocess==0.70.16",
+    "networkx==3.5",
+    "packaging==25.0",
+    "pillow==11.3.0",
+    "pluggy==1.6.0",
+    "propcache==0.3.2",
+    "protobuf==6.32.0",
+    "pyarrow==21.0.0",
+    "pyparsing==3.2.3",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2025.2",
+    "six==1.17.0",
+    "sympy==1.14.0",
+    "tensorboard-data-server==0.7.2",
+    "typing_extensions==4.14.1",
+    "tzdata==2025.2",
+    "urllib3==2.5.0",
+    "Werkzeug==3.1.3",
+    "xxhash==3.5.0",
+    "yarl==1.20.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.1",
+    "pytest-cov",
+    "black",
+    "isort",
+    "mypy",
+    "pre-commit",
+]
+
+
+[tool.pytest.ini_options]
+testpaths = ["part_1/tests", "part_2/tests", "part_3/tests", "part_4/tests", "part_5/tests", "part_6/tests", "part_7/tests", "part_8/tests", "part_9/tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+python_classes = "Test*"
+addopts = "-v --tb=short --strict-markers --strict-config"
+markers = [
+    "slow: marks tests as slow (deselect with '-m not slow')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+pythonpath = [
+    ".",
+    "part_1",
+    "part_2", 
+    "part_3",
+    "part_4",
+    "part_5",
+    "part_6",
+    "part_7",
+    "part_8",
+    "part_9"
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["part_1", "part_2", "part_3", "part_4", "part_5", "part_6", "part_7", "part_8", "part_9"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true

@@ -1,4 +1,70 @@
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+
+# Testing
 .pytest_cache/
-.DS_Store
+.coverage
+htmlcov/
+
+# Machine Learning
+# Model files
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.h5
+*.pkl
+*.pickle
+
+# Experiment tracking
+wandb/
+mlruns/
+lightning_logs/
 runs/
+
+# Data (uncomment if you want to ignore data files)
+data/
+datasets/
+*.csv
+
+# Outputs
+output/
+outputs/
+checkpoints/
+logs/
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
