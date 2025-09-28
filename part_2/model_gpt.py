@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Core building blocks for a tiny GPT-style transformer.
 # ---- Blocks (self-contained for isolation) ----
 class CausalSelfAttention(nn.Module):
     def __init__(self, n_embd: int, n_head: int, dropout: float = 0.0):
@@ -17,6 +18,7 @@ class CausalSelfAttention(nn.Module):
 
     def forward(self, x: torch.Tensor):  # (B,T,C)
         B, T, C = x.shape
+        # Project inputs once, then reshape to pull out Q/K/V for each head.
         qkv = self.qkv(x).view(B, T, 3, self.n_head, self.d_head)
         q, k, v = qkv.unbind(dim=2)
         q = q.transpose(1, 2)
@@ -32,6 +34,7 @@ class CausalSelfAttention(nn.Module):
 class FeedForward(nn.Module):
     def __init__(self, n_embd: int, mult: int = 4, dropout: float = 0.0):
         super().__init__()
+        # Standard two-layer MLP expansion used inside transformer blocks.
         self.net = nn.Sequential(
             nn.Linear(n_embd, mult * n_embd),
             nn.GELU(),
@@ -51,6 +54,7 @@ class Block(nn.Module):
         self.ffn = FeedForward(n_embd, mult=4, dropout=dropout)
 
     def forward(self, x):
+        # Pre-norm residual block: attention followed by MLP.
         x = x + self.attn(self.ln1(x))
         x = x + self.ffn(self.ln2(x))
         return x
@@ -60,9 +64,11 @@ class GPT(nn.Module):
     def __init__(self, vocab_size: int, block_size: int, n_layer: int = 4, n_head: int = 4, n_embd: int = 256, dropout: float = 0.0):
         super().__init__()
         self.block_size = block_size
+        # Token and positional embeddings supply the input representation.
         self.tok_emb = nn.Embedding(vocab_size, n_embd)
         self.pos_emb = nn.Embedding(block_size, n_embd)
         self.drop = nn.Dropout(dropout)
+        # Stack of identical transformer blocks.
         self.blocks = nn.ModuleList([Block(n_embd, n_head, dropout) for _ in range(n_layer)])
         self.ln_f = nn.LayerNorm(n_embd)
         self.head = nn.Linear(n_embd, vocab_size, bias=False)
@@ -80,6 +86,7 @@ class GPT(nn.Module):
     def forward(self, idx: torch.Tensor, targets: torch.Tensor | None = None):
         B, T = idx.shape
         assert T <= self.block_size
+        # Look up token and position embeddings, then run through the block stack.
         pos = torch.arange(0, T, device=idx.device).unsqueeze(0)
         x = self.tok_emb(idx) + self.pos_emb(pos)
         x = self.drop(x)
@@ -102,6 +109,7 @@ class GPT(nn.Module):
             idx = torch.full((idx.size(0), 1), 10, dtype=torch.long, device=idx.device)
         for _ in range(max_new_tokens):
             idx_cond = idx[:, -self.block_size:]
+            # Forward pass on the latest context window, then sample next token.
             logits, _ = self(idx_cond)
             logits = logits[:, -1, :] / max(temperature, 1e-6)
             logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)
