@@ -16,9 +16,9 @@ def test_single_head_matches_numpy():
     attn = SingleHeadSelfAttention(d_model=4, d_k=2)
     # load weights
     with torch.no_grad():
-        attn.q.weight.copy_(torch.tensor(Wq).t())
-        attn.k.weight.copy_(torch.tensor(Wk).t())
-        attn.v.weight.copy_(torch.tensor(Wv).t())
+        attn.q.weight.copy_(torch.from_numpy(Wq).T)
+        attn.k.weight.copy_(torch.from_numpy(Wk).T)
+        attn.v.weight.copy_(torch.from_numpy(Wv).T)
     out, w = attn(x)
     assert out.shape == (1,3,2)
     # Basic numeric sanity
