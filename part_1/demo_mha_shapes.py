@@ -20,42 +20,57 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(OUT_TXT), exist_ok=True)
     open(OUT_TXT, 'w').close()
 
+    # --- 1. Setup ---
+    # Define the dimensions for our toy example.
     B, T, d_model, n_head = 1, 5, 12, 3
     d_head = d_model // n_head
+    # Create a random input tensor.
     x = torch.randn(B, T, d_model)
+    # Instantiate the Multi-Head Attention module.
     attn = MultiHeadSelfAttention(d_model, n_head, trace_shapes=True)
 
+    # --- 2. Walkthrough of the forward pass ---
     log(f"Input x:           {tuple(x.shape)} = (B,T,d_model)")
+    # Project the input into a single large QKV tensor.
     qkv = attn.qkv(x)  # (B,T,3*d_model)
     log(f"Linear qkv(x):     {tuple(qkv.shape)} = (B,T,3*d_model)")
 
+    # Reshape to separate the 3 (Q,K,V) and the heads.
     qkv = qkv.view(B, T, 3, n_head, d_head)
     log(f"view to 5D:        {tuple(qkv.shape)} = (B,T,3,heads,d_head)")
 
+    # Split into Q, K, and V tensors.
     q, k, v = qkv.unbind(dim=2)
     log(f"q,k,v split:       q={tuple(q.shape)} k={tuple(k.shape)} v={tuple(v.shape)}")
 
+    # Transpose to bring the 'heads' dimension before the 'T' dimension for batch matrix multiplication.
     q = q.transpose(1, 2)
     k = k.transpose(1, 2)
     v = v.transpose(1, 2)
     log(f"transpose heads:   q={tuple(q.shape)} k={tuple(k.shape)} v={tuple(v.shape)} = (B,heads,T,d_head)")
 
+    # Calculate scaled dot-product attention scores.
     scale = 1.0 / math.sqrt(d_head)
     scores = torch.matmul(q, k.transpose(-2, -1)) * scale
     log(f"scores q@k^T:      {tuple(scores.shape)} = (B,heads,T,T)")
 
+    # Apply softmax to get attention weights. Causal masking would happen here.
     weights = torch.softmax(scores, dim=-1)
     log(f"softmax(weights):  {tuple(weights.shape)} = (B,heads,T,T)")
 
+    # Compute the weighted sum of value vectors.
     ctx = torch.matmul(weights, v)
     log(f"context @v:        {tuple(ctx.shape)} = (B,heads,T,d_head)")
 
+    # Merge the heads back together by transposing and reshaping.
     out = ctx.transpose(1, 2).contiguous().view(B, T, d_model)
     log(f"merge heads:       {tuple(out.shape)} = (B,T,d_model)")
 
+    # Apply the final linear projection.
     out = attn.proj(out)
     log(f"final proj:        {tuple(out.shape)} = (B,T,d_model)")
 
+    # --- 3. Legend ---
     log("\nLegend:")
     log("  B=batch, T=sequence length, d_model=embedding size, heads=n_head, d_head=d_model/heads")
     log("  qkv(x) is a single Linear producing [Q|K|V]; we reshape then split into q,k,v")

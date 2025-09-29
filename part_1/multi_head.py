@@ -23,33 +23,47 @@ class MultiHeadSelfAttention(nn.Module):
         assert d_model % n_head == 0, "d_model must be divisible by n_head"
         self.n_head = n_head
         self.d_head = d_model // n_head
+        # A single linear layer to project the input into Q, K, V for all heads at once.
         self.qkv = nn.Linear(d_model, 3 * d_model, bias=False)
+        # A final linear layer to project the concatenated head outputs back to d_model.
         self.proj = nn.Linear(d_model, d_model, bias=False)
         self.dropout = nn.Dropout(dropout)
         self.trace_shapes = trace_shapes
 
-    def forward(self, x: torch.Tensor):  # (B,T,d_model)
+    def forward(self, x: torch.Tensor):
+        """
+        Performs the forward pass for multi-head self-attention.
+        - x: Input tensor of shape (B, T, d_model).
+        """
         B, T, C = x.shape
+        # 1. Project input into a combined QKV tensor.
         qkv = self.qkv(x)                          # (B,T,3*C)
+        # 2. Reshape and split the QKV tensor into separate Q, K, V for each head.
         qkv = qkv.view(B, T, 3, self.n_head, self.d_head)  # (B,T,3,heads,dim)
         if self.trace_shapes:
             print("qkv view:", qkv.shape)
         q, k, v = qkv.unbind(dim=2)               # each: (B,T,heads,dim)
+        # 3. Transpose Q, K, V to prepare for batch matrix multiplication.
         q = q.transpose(1, 2)                      # (B,heads,T,dim)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         if self.trace_shapes:
             print("q:", q.shape, "k:", k.shape, "v:", v.shape)
 
+        # 4. Calculate attention scores (scaled dot-product).
         scale = 1.0 / math.sqrt(self.d_head)
         attn = torch.matmul(q, k.transpose(-2, -1)) * scale  # (B,heads,T,T)
+        # 5. Apply causal mask.
         mask = causal_mask(T, device=x.device)
         attn = attn.masked_fill(mask, float('-inf'))
+        # 6. Apply softmax to get attention weights and apply dropout.
         w = F.softmax(attn, dim=-1)
         w = self.dropout(w)
+        # 7. Compute the weighted sum of value vectors.
         ctx = torch.matmul(w, v)                  # (B,heads,T,dim)
         if self.trace_shapes:
             print("weights:", w.shape, "ctx:", ctx.shape)
+        # 8. Merge the heads back together and apply the final projection.
         out = ctx.transpose(1, 2).contiguous().view(B, T, C)  # (B,T,d_model)
         out = self.proj(out)
         if self.trace_shapes:
