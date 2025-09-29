@@ -37,12 +37,12 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # 1) run unit tests
-    run("python -m pytest -q tests/test_rmsnorm.py")
-    run("python -m pytest -q tests/test_rope_apply.py")
-    run("python -m pytest -q tests/test_kvcache_shapes.py")
+    run("uv run pytest -q tests/test_rmsnorm.py")
+    run("uv run pytest -q tests/test_rope_apply.py")
+    run("uv run pytest -q tests/test_kvcache_shapes.py")
 
     # 2) (optional) generation demo
     if args.demo:
-        run("python demo_generate.py --rmsnorm --rope --swiglu --sliding_window 64 --sink 4 --tokens 200")
+        run("uv run python demo_generate.py --rmsnorm --rope --swiglu --sliding_window 64 --sink 4 --tokens 200")
 
     print("\nPart 3 checks complete. ✅")

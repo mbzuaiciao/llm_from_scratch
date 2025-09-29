@@ -71,19 +71,22 @@ def main():
 
     # --- Optimizer and AMP Scaler ---
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=args.weight_decay)
-    use_amp = args.amp and args.device.type == 'cuda'
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    use_amp = args.amp and 'cuda' in args.device.type
+    scaler = torch.amp.GradScaler(device=args.device, enabled=use_amp)
 
     # --- Training Loop ---
     best_val = float('inf')
     t0 = time.time()
     model.train()
+    # Ensure output directory exists before the loop starts
+    import os; os.makedirs(args.out_dir, exist_ok=True)
+
     for step in range(1, args.steps + 1):
         # Fetch a batch of training data.
         xb, yb = ds.get_batch('train', args.batch_size, args.device)
 
-        # Forward and backward pass with Automatic Mixed Precision (AMP).
-        with torch.cuda.amp.autocast(enabled=use_amp):
+        # Forward and backward pass with Automatic Mixed Precision (AMP)
+        with torch.amp.autocast(device_type=args.device.type, enabled=use_amp):
             _, loss = model(xb, yb)
         # Clear previous gradients.
         opt.zero_grad(set_to_none=True)
@@ -112,7 +115,6 @@ def main():
             if losses['val'] < best_val:
                 best_val = losses['val']
                 ckpt_path = f"{args.out_dir}/model_best.pt"
-                import os; os.makedirs(args.out_dir, exist_ok=True)
                 # Save model state and configuration.
                 torch.save({'model': model.state_dict(), 'config': {
                     'vocab_size': tok.vocab_size,
@@ -134,8 +136,14 @@ def main():
             print("\n================ SAMPLE ================\n" + txt[-(args.block_size + args.sample_tokens):] + "\n=======================================\n")
 
     # --- Final Save ---
-    import os; os.makedirs(args.out_dir, exist_ok=True)
-    torch.save({'model': model.state_dict()}, f"{args.out_dir}/model_final.pt")
+    torch.save({'model': model.state_dict(), 'config': {
+        'vocab_size': tok.vocab_size,
+        'block_size': args.block_size,
+        'n_layer': args.n_layer,
+        'n_head': args.n_head,
+        'n_embd': args.n_embd,
+        'dropout': args.dropout,
+    }}, f"{args.out_dir}/model_final.pt")
     print(f"Saved final model to {args.out_dir}/model_final.pt")
 
 

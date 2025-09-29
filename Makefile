@@ -84,14 +84,29 @@ run-part1-demo: ## Run attention numpy demo from part 1
 run-part1-shapes: ## Run multi-head attention shapes demo
 	cd part_1 && uv run python demo_mha_shapes.py
 
+run-part1-orchestrator: ## Run the full part 1 orchestrator (demos, tests, optional viz)
+	cd part_1 && uv run python orchestrator.py
+
 run-part2-train: ## Run training from part 2 (tiny dataset)
 	cd part_2 && uv run python train.py
 
 run-part2-sample: ## Run sampling from part 2
 	cd part_2 && uv run python sample.py
 
+run-part2-orchestrator: ## Run the full part 2 orchestrator (train, sample, eval)
+	cd part_2 && uv run python orchestrator.py
+
 run-part3-generate: ## Run generation demo from part 3
 	cd part_3 && uv run python demo_generate.py
+
+run-part4-orchestrator-demo: ## Run the part 4 orchestrator with demo
+	cd part_4 && uv run python orchestrator.py --demo
+
+run-part5-orchestrator-demo: ## Run the part 5 orchestrator with demo
+	cd part_5 && uv run python orchestrator.py --demo
+
+run-part6-orchestrator-demo: ## Run the part 6 orchestrator with demo
+	cd part_6 && uv run python orchestrator.py --demo
 
 # Utility targets
 clean: ## Clean up temporary files
