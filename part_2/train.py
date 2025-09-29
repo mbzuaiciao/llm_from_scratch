@@ -71,7 +71,8 @@ def main():
 
     # --- Optimizer and AMP Scaler ---
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=args.weight_decay)
-    scaler = torch.cuda.amp.GradScaler(enabled=(args.amp and args.device.type == 'cuda'))
+    use_amp = args.amp and args.device.type == 'cuda'
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
     # --- Training Loop ---
     best_val = float('inf')
@@ -82,7 +83,7 @@ def main():
         xb, yb = ds.get_batch('train', args.batch_size, args.device)
 
         # Forward and backward pass with Automatic Mixed Precision (AMP).
-        with torch.cuda.amp.autocast(enabled=(args.amp and args.device.type == 'cuda')):
+        with torch.cuda.amp.autocast(enabled=use_amp):
             _, loss = model(xb, yb)
         # Clear previous gradients.
         opt.zero_grad(set_to_none=True)
