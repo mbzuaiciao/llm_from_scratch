@@ -74,6 +74,16 @@ def main():
     use_amp = args.amp and 'cuda' in args.device.type
     scaler = torch.amp.GradScaler(device=args.device, enabled=use_amp)
 
+    # --- Checkpoint Config ---
+    # Create the config dict once to be saved with checkpoints.
+    config_to_save = {
+        'vocab_size': tok.vocab_size,
+        'block_size': args.block_size,
+        'n_layer': args.n_layer,
+        'n_head': args.n_head,
+        'n_embd': args.n_embd,
+        'dropout': args.dropout,
+    }
     # --- Training Loop ---
     best_val = float('inf')
     t0 = time.time()
@@ -115,15 +125,7 @@ def main():
             if losses['val'] < best_val:
                 best_val = losses['val']
                 ckpt_path = f"{args.out_dir}/model_best.pt"
-                # Save model state and configuration.
-                torch.save({'model': model.state_dict(), 'config': {
-                    'vocab_size': tok.vocab_size,
-                    'block_size': args.block_size,
-                    'n_layer': args.n_layer,
-                    'n_head': args.n_head,
-                    'n_embd': args.n_embd,
-                    'dropout': args.dropout,
-                }}, ckpt_path)
+                torch.save({'model': model.state_dict(), 'config': config_to_save}, ckpt_path)
                 print(f"saved checkpoint: {ckpt_path}")
 
         # --- Sampling ---
@@ -136,14 +138,7 @@ def main():
             print("\n================ SAMPLE ================\n" + txt[-(args.block_size + args.sample_tokens):] + "\n=======================================\n")
 
     # --- Final Save ---
-    torch.save({'model': model.state_dict(), 'config': {
-        'vocab_size': tok.vocab_size,
-        'block_size': args.block_size,
-        'n_layer': args.n_layer,
-        'n_head': args.n_head,
-        'n_embd': args.n_embd,
-        'dropout': args.dropout,
-    }}, f"{args.out_dir}/model_final.pt")
+    torch.save({'model': model.state_dict(), 'config': config_to_save}, f"{args.out_dir}/model_final.pt")
     print(f"Saved final model to {args.out_dir}/model_final.pt")
 
 
