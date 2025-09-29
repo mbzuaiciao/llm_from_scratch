@@ -34,12 +34,12 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # 1) unit tests
-    run("python -m pytest -q tests/test_gate_shapes.py")
-    run("python -m pytest -q tests/test_moe_forward.py")
-    run("python -m pytest -q tests/test_hybrid_block.py")
+    run("uv run pytest -q tests/test_gate_shapes.py")
+    run("uv run pytest -q tests/test_moe_forward.py")
+    run("uv run pytest -q tests/test_hybrid_block.py")
 
     # 2) optional demo
     if args.demo:
-        run("python demo_moe.py --tokens 6 --hidden 128 --experts 4 --top_k 1")
+        run("uv run python demo_moe.py --tokens 6 --hidden 128 --experts 4 --top_k 1")
 
     print("\nPart 5 checks complete. ✅")
