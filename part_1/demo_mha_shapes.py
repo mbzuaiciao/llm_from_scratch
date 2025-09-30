@@ -62,8 +62,8 @@ if __name__ == "__main__":
     ctx = torch.matmul(weights, v)
     log(f"context @v:        {tuple(ctx.shape)} = (B,heads,T,d_head)")
 
-    # Merge the heads back together by transposing and reshaping.
-    out = ctx.transpose(1, 2).contiguous().view(B, T, d_model)
+    # Merge the heads back together by permuting and reshaping.
+    out = ctx.permute(0, 2, 1, 3).reshape(B, T, d_model)
     log(f"merge heads:       {tuple(out.shape)} = (B,T,d_model)")
 
     # Apply the final linear projection.
